@@ -37,29 +37,33 @@ func main() {
 
 	log.Println("Running game...")
 
+	go func() {
+		for g.IsRunning() {
+			log.Println(">>> START >>>")
+
+			screen.Clear()
+
+			g.Update()
+
+			for _, command := range g.GetDrawCommands(style) {
+				screen.SetContent(command.X, command.Y, command.Data, nil, command.Style)
+			}
+
+			screen.Show()
+
+			log.Println("<<<  END  <<<")
+
+			time.Sleep(50 * time.Millisecond)
+		}
+	}()
+
 	for g.IsRunning() {
-		log.Println(">>> START >>>")
-
-		screen.Clear()
-
 		switch event := screen.PollEvent().(type) {
 		case *tcell.EventResize:
 			screen.Sync()
 		default:
 			g.HandleEvent(event)
 		}
-
-		g.Update()
-
-		for _, command := range g.GetDrawCommands(style) {
-			screen.SetContent(command.X, command.Y, command.Data, nil, command.Style)
-		}
-
-		screen.Show()
-
-		log.Println("<<<  END  <<<")
-
-		time.Sleep(40 * time.Millisecond)
 	}
 
 	log.Println("Shutting down...")

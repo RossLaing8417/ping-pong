@@ -17,3 +17,8 @@ func NewPlayer(x, height int) Player {
 		Score: 0,
 	}
 }
+
+func (p *Player) Update() {
+	p.Position.TL.Y += p.Delta
+	p.Position.BR.Y += p.Delta
+}
