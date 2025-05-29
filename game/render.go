@@ -37,19 +37,19 @@ func (g *Game) GetDrawCommands(style tcell.Style) []DrawCommand {
 		})
 	}
 
-	pos := g.playerLeft.Position
-	for y := pos.TL.Y; y <= pos.BR.Y; y += 1 {
+	player := g.playerLeft
+	for y := player.Top; y <= player.Bottom; y += 1 {
 		buffer = append(buffer, DrawCommand{
-			Coord: Coord{pos.TL.X, y},
+			Coord: Coord{player.X, y},
 			Data:  ' ',
 			Style: style,
 		})
 	}
 
-	pos = g.playerRight.Position
-	for y := pos.TL.Y; y <= pos.BR.Y; y += 1 {
+	player = g.playerRight
+	for y := player.Top; y <= player.Bottom; y += 1 {
 		buffer = append(buffer, DrawCommand{
-			Coord: Coord{pos.TL.X, y},
+			Coord: Coord{player.X, y},
 			Data:  ' ',
 			Style: style,
 		})

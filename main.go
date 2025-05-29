@@ -39,8 +39,6 @@ func main() {
 
 	go func() {
 		for g.IsRunning() {
-			log.Println(">>> START >>>")
-
 			screen.Clear()
 
 			g.Update()
@@ -50,8 +48,6 @@ func main() {
 			}
 
 			screen.Show()
-
-			log.Println("<<<  END  <<<")
 
 			time.Sleep(50 * time.Millisecond)
 		}

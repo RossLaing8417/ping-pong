@@ -2,20 +2,10 @@ package game
 
 import "github.com/gdamore/tcell/v2"
 
-type Coord struct {
-	X int
-	Y int
-}
-
-type Position struct {
-	TL Coord
-	BR Coord
-}
-
 type Game struct {
 	running      bool
 	winningScore int
-	arena        Position
+	arena        Arena
 	playerLeft   Player
 	playerRight  Player
 	puck         Puck
@@ -23,18 +13,18 @@ type Game struct {
 }
 
 func NewGame(width, height int) *Game {
-	buffer := make([]DrawCommand, 0, (width * height))
+	a := Arena{
+		TL: Coord{0, 0},
+		BR: Coord{width - 1, height - 1},
+	}
 	return &Game{
 		running:      true,
 		winningScore: 15,
-		arena: Position{
-			TL: Coord{0, 0},
-			BR: Coord{width - 1, height - 1},
-		},
-		playerLeft:  NewPlayer(2, height),
-		playerRight: NewPlayer(width-3, height),
-		puck:        NewPuck(width-1, height-2),
-		buffer:      buffer,
+		arena:        a,
+		playerLeft:   NewPlayer(a.TL.X+2, height-2),
+		playerRight:  NewPlayer(a.BR.X-2, height-2),
+		puck:         NewPuck(a.BR.X/2, a.BR.Y/2),
+		buffer:       make([]DrawCommand, 0, (width * height)),
 	}
 }
 
@@ -47,11 +37,24 @@ func (g *Game) HandleEvent(event tcell.Event) {
 	case *tcell.EventKey:
 		if e.Key() == tcell.KeyEsc {
 			// TODO: Pause
-		}
-		if e.Key() == tcell.KeyCtrlC {
+		} else if e.Key() == tcell.KeyCtrlC || e.Rune() == 'q' {
 			g.running = false
+		} else if e.Rune() == 'e' {
+			g.playerLeft.MoveUp(g.arena)
+		} else if e.Rune() == 'd' {
+			g.playerLeft.MoveDown(g.arena)
+		} else if e.Rune() == 'i' {
+			g.playerRight.MoveUp(g.arena)
+		} else if e.Rune() == 'k' {
+			g.playerRight.MoveDown(g.arena)
 		}
 	}
+}
+
+func (g *Game) Update() {
+	// g.playerLeft.Update(g.arena)
+	// g.playerRight.Update(g.arena)
+	g.puck.Update(g.arena, g.playerLeft, g.playerRight)
 }
 
 func (g *Game) GameOver() bool {
