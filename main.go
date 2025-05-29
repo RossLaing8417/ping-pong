@@ -2,6 +2,7 @@ package main
 
 import (
 	"log"
+	"os"
 	"time"
 
 	"github.com/RossLaing8417/ping-pong/game"
@@ -9,6 +10,12 @@ import (
 )
 
 func main() {
+	logFile, err := os.OpenFile("/tmp/ping-pong.log", os.O_TRUNC|os.O_WRONLY|os.O_CREATE, 0644)
+	if err != nil {
+		log.Fatalln(err)
+	}
+	log.SetOutput(logFile)
+
 	screen, err := tcell.NewScreen()
 	if err != nil {
 		log.Fatalln(err)
@@ -20,20 +27,40 @@ func main() {
 		log.Panicln(err)
 	}
 	defer screen.Fini()
+
 	style := tcell.StyleDefault.Background(tcell.ColorBlack).Foreground(tcell.ColorWhite)
 	screen.SetStyle(style)
-	g := game.NewGame(screen)
+	style = style.Background(tcell.ColorWhite).Foreground(tcell.ColorBlack)
 
-	for g.Running {
+	width, height := screen.Size()
+	g := game.NewGame(width, height)
+
+	log.Println("Running game...")
+
+	for g.IsRunning() {
+		log.Println(">>> START >>>")
+
 		screen.Clear()
-		g.HandleEvent(screen.PollEvent())
+
+		switch event := screen.PollEvent().(type) {
+		case *tcell.EventResize:
+			screen.Sync()
+		default:
+			g.HandleEvent(event)
+		}
+
 		g.Update()
 
-		screen.SetContent(0, 0, 'H', nil, style)
-		screen.SetContent(1, 0, 'i', nil, style)
-		screen.SetContent(2, 0, '!', nil, style)
+		for _, command := range g.GetDrawCommands(style) {
+			screen.SetContent(command.X, command.Y, command.Data, nil, command.Style)
+		}
+
 		screen.Show()
+
+		log.Println("<<<  END  <<<")
 
 		time.Sleep(40 * time.Millisecond)
 	}
+
+	log.Println("Shutting down...")
 }
