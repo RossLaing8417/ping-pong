@@ -28,9 +28,9 @@ func main() {
 	}
 	defer screen.Fini()
 
-	style := tcell.StyleDefault.Background(tcell.ColorBlack).Foreground(tcell.ColorWhite)
-	screen.SetStyle(style)
-	style = style.Background(tcell.ColorWhite).Foreground(tcell.ColorBlack)
+	baseStyle := tcell.StyleDefault.Background(tcell.ColorBlack).Foreground(tcell.ColorWhite)
+	screen.SetStyle(baseStyle)
+	altStyle := baseStyle.Background(tcell.ColorWhite).Foreground(tcell.ColorBlack)
 
 	width, height := screen.Size()
 	g := game.NewGame(width, height)
@@ -43,7 +43,7 @@ func main() {
 
 			g.Update()
 
-			for _, command := range g.GetDrawCommands(style) {
+			for _, command := range g.GetDrawCommands(baseStyle, altStyle) {
 				screen.SetContent(command.X, command.Y, command.Data, nil, command.Style)
 			}
 
@@ -63,4 +63,5 @@ func main() {
 	}
 
 	log.Println("Shutting down...")
+	time.Sleep(100 * time.Millisecond)
 }

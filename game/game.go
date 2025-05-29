@@ -19,7 +19,7 @@ func NewGame(width, height int) *Game {
 	}
 	return &Game{
 		running:      true,
-		winningScore: 15,
+		winningScore: 3,
 		arena:        a,
 		playerLeft:   NewPlayer(a.TL.X+2, height-2),
 		playerRight:  NewPlayer(a.BR.X-2, height-2),
@@ -35,9 +35,7 @@ func (g *Game) IsRunning() bool {
 func (g *Game) HandleEvent(event tcell.Event) {
 	switch e := event.(type) {
 	case *tcell.EventKey:
-		if e.Key() == tcell.KeyEsc {
-			// TODO: Pause
-		} else if e.Key() == tcell.KeyCtrlC || e.Rune() == 'q' {
+		if e.Key() == tcell.KeyCtrlC || e.Rune() == 'q' {
 			g.running = false
 		} else if e.Rune() == 'e' {
 			g.playerLeft.MoveUp(g.arena)
@@ -52,13 +50,14 @@ func (g *Game) HandleEvent(event tcell.Event) {
 }
 
 func (g *Game) Update() {
-	// g.playerLeft.Update(g.arena)
-	// g.playerRight.Update(g.arena)
-	g.puck.Update(g.arena, g.playerLeft, g.playerRight)
+	g.puck.Update(g.arena, &g.playerLeft, &g.playerRight)
+	if g.gameOver() {
+		g.running = false
+	}
 }
 
-func (g *Game) GameOver() bool {
-	if g.playerLeft.Score > g.winningScore || g.playerRight.Score > g.winningScore {
+func (g *Game) gameOver() bool {
+	if g.playerLeft.Score >= g.winningScore || g.playerRight.Score >= g.winningScore {
 		return true
 	}
 	return false
