@@ -1,13 +1,14 @@
 package game
 
-import "github.com/RossLaing8417/ping-pong/ui"
+import "github.com/gdamore/tcell/v2"
 
 type Game struct {
 	Running      bool
 	screen       *ui.Screen
+	screen       tcell.Screen
 }
 
-func NewGame(screen *ui.Screen) *Game {
+func NewGame(screen tcell.Screen) *Game {
 	return &Game{
 		Running:      true,
 		screen: screen,
