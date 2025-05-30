@@ -1,12 +1,16 @@
 package game
 
+import "github.com/gdamore/tcell/v2"
+
 type Puck struct {
+	Style    tcell.Style
 	Position Coord
 	Delta    Coord
 }
 
-func NewPuck(x, y int) Puck {
+func NewPuck(style tcell.Style, x, y int) Puck {
 	return Puck{
+		Style:    style,
 		Position: Coord{x, y},
 		Delta:    Coord{1, 1},
 	}

@@ -1,8 +1,11 @@
 package game
 
+import "github.com/gdamore/tcell/v2"
+
 type Arena struct {
-	TL Coord
-	BR Coord
+	Style tcell.Style
+	TL    Coord
+	BR    Coord
 }
 
 func (a Arena) CollidingX(x int) bool {

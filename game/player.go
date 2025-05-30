@@ -1,6 +1,9 @@
 package game
 
+import "github.com/gdamore/tcell/v2"
+
 type Player struct {
+	Style  tcell.Style
 	X      int
 	Top    int
 	Bottom int
@@ -8,9 +11,10 @@ type Player struct {
 	Score  int
 }
 
-func NewPlayer(x, arenaHeight int) Player {
+func NewPlayer(style tcell.Style, x, arenaHeight int) Player {
 	midY := arenaHeight / 2
 	return Player{
+		Style:  style,
 		X:      x,
 		Top:    midY - 5,
 		Bottom: midY + 5,

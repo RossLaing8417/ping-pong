@@ -1,8 +1,13 @@
 package game
 
-import "github.com/gdamore/tcell/v2"
+import (
+	"time"
+
+	"github.com/gdamore/tcell/v2"
+)
 
 type Game struct {
+	screen       tcell.Screen
 	running      bool
 	winningScore int
 	arena        Arena
@@ -10,43 +15,83 @@ type Game struct {
 	playerRight  Player
 	puck         Puck
 	buffer       []DrawCommand
+	baseStyle    tcell.Style
 }
 
-func NewGame(width, height int) *Game {
-	a := Arena{
-		TL: Coord{0, 0},
-		BR: Coord{width - 1, height - 1},
+func NewGame() (*Game, error) {
+	screen, err := tcell.NewScreen()
+	if err != nil {
+		return nil, err
 	}
+	if err = screen.Init(); err != nil {
+		return nil, err
+	}
+
+	baseStyle := tcell.StyleDefault.Background(tcell.ColorBlack).Foreground(tcell.ColorWhite)
+	screen.SetStyle(baseStyle)
+	blockStyle := baseStyle.Background(tcell.ColorWhite).Foreground(tcell.ColorBlack)
+
+	width, height := screen.Size()
+	a := Arena{
+		Style: blockStyle,
+		TL:    Coord{0, 0},
+		BR:    Coord{width - 1, height - 1},
+	}
+
 	return &Game{
+		screen:       screen,
 		running:      true,
 		winningScore: 3,
 		arena:        a,
-		playerLeft:   NewPlayer(a.TL.X+2, height-2),
-		playerRight:  NewPlayer(a.BR.X-2, height-2),
-		puck:         NewPuck(a.BR.X/2, a.BR.Y/2),
+		playerLeft:   NewPlayer(blockStyle, a.TL.X+2, height-2),
+		playerRight:  NewPlayer(blockStyle, a.BR.X-2, height-2),
+		puck:         NewPuck(blockStyle, a.BR.X/2, a.BR.Y/2),
 		buffer:       make([]DrawCommand, 0, (width * height)),
-	}
+		baseStyle:    baseStyle,
+	}, nil
 }
 
-func (g *Game) IsRunning() bool {
-	return g.running
-}
+func (g *Game) Run() {
+	go g.loop()
 
-func (g *Game) HandleEvent(event tcell.Event) {
-	switch e := event.(type) {
-	case *tcell.EventKey:
-		if e.Key() == tcell.KeyCtrlC || e.Rune() == 'q' {
-			g.running = false
-		} else if e.Rune() == 'e' {
-			g.playerLeft.MoveUp(g.arena)
-		} else if e.Rune() == 'd' {
-			g.playerLeft.MoveDown(g.arena)
-		} else if e.Rune() == 'i' {
-			g.playerRight.MoveUp(g.arena)
-		} else if e.Rune() == 'k' {
-			g.playerRight.MoveDown(g.arena)
+	for g.running {
+		switch event := g.screen.PollEvent().(type) {
+		case *tcell.EventResize:
+			g.screen.Sync()
+		case *tcell.EventKey:
+			if event.Key() == tcell.KeyCtrlC || event.Rune() == 'q' {
+				g.running = false
+			} else if event.Rune() == 'e' {
+				g.playerLeft.MoveUp(g.arena)
+			} else if event.Rune() == 'd' {
+				g.playerLeft.MoveDown(g.arena)
+			} else if event.Rune() == 'i' {
+				g.playerRight.MoveUp(g.arena)
+			} else if event.Rune() == 'k' {
+				g.playerRight.MoveDown(g.arena)
+			}
 		}
 	}
+}
+
+func (g *Game) loop() {
+	for g.running {
+		g.screen.Clear()
+
+		g.Update()
+
+		for _, command := range g.GetDrawCommands() {
+			g.screen.SetContent(command.X, command.Y, command.Data, nil, command.Style)
+		}
+
+		g.screen.Show()
+
+		time.Sleep(50 * time.Millisecond)
+	}
+}
+
+func (g *Game) End() {
+	g.screen.Fini()
 }
 
 func (g *Game) Update() {
