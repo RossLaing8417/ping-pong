@@ -40,6 +40,3 @@ func (p *Player) MoveDown(a Arena) {
 		p.Bottom += p.Delta
 	}
 }
-
-func (p *Player) Update() {
-}
